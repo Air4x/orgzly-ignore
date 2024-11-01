@@ -36,12 +36,19 @@ fn getdiriter() (*fs::iterator | fs::error)= {
 //          then nothing()
 //     else add to file_to ignore
 
+
+// Loop over every single $entry in current dir:
+//     if entry.name == "." || entry.name == "..": continue;
+//     if entry.ftype isdir: continue;
+//     if d.name has not org extension: continue;
+//     now there are only .org files to check
+//     if entry is not project:
+//             append to files
 fn getfiles(iter: *fs::iterator, files: *[]str) void = {
 	for(const d => fs::next(iter)!) {
 		if(d.name == "." || d.name == "..") { continue; };
 		if(fs::isdir(d.ftype)){ continue; };
-		let fh = os::open(d.name)!;
-		defer io::close(fh)!;
+		if(!isorg(d.name)){ continue; };
 		if(!isproject(fh)){
 			append(*files, d.name);
 		};
@@ -49,20 +56,16 @@ fn getfiles(iter: *fs::iterator, files: *[]str) void = {
 };
 
 
-fn isproject(fh: io::handle) bool = {
-	for(true) {
-		let line = match(bufio::read_line(fh)) {
-		case let l: []u8 =>
-			yield strings::fromutf8(l)!;
-		case io::EOF =>
-				break;
-		};
-		let line = strings::fromutf8(line)!;
-		if(strings::contains(line, "#+filetags:") && strings::contains(line, "Progetti")) {
-			return true;
-		};
-	};
-	return false;
+fn isorg(filename: str) bool = {
+	let s = strings::dup(filename);
+	defer free(s);
+	let parts = strings::split(s, ".");
+	defer free(parts);
+	return parts[len(parts)-1] == "org";
+};
+
+fn isproject(filename: str) bool = {
+
 };
 
 
