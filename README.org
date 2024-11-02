@@ -1,0 +1,22 @@
+#+TITLE: orgzly-ignore
+
+* A utility to set-up a your ~.orgzlyignore~
+~ignore~ is a utility that given a ~TAG~ and a ~IGNORE_FILE~ can set up your ~IGNORE_FILE~ to
+ignore all the file without ~TAG~.
+** Quickstart
+*** Dependencies
+- harec
+- hare stdlib
+- make
+*** Installation
+As simple as:
+#+begin_src shell
+  make && make install
+#+end_src
+NOTE: ~make install~ will need root provilegies to install in the default ~$PREFIX~ (~/usr/bin~) usually
+** Example
+To ignore all the file that aren't tagged as Projects:
+#+begin_src shell
+  ignore "Projects" .orgzlyignore
+#+end_src
+

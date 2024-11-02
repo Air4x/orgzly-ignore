@@ -18,7 +18,7 @@ clean:
 	 rm -f ignore
 
 install:
-	install -Dm755 cmd $(DESTDIR)$(BINDIR)/cmd
+	install -Dm755 ignore $(DESTDIR)$(BINDIR)/ignore
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/cmd
