@@ -10,7 +10,14 @@ use strings;
 // ottiene la lista dei file da ignorare e li inserisce in .orgzlyignore
 // usage: ignore TAG IGNORE-FILE
 export fn main() void = {
-	let ignore_file = ".orgzlyignore.prova";
+	
+	// cli interface
+	if(len(os::args) < 3) {
+		print_usage();
+		fmt::fatalf("Non enough args provided");
+	};
+	let tag = strings::dup(os::args[1]);
+	let ignore_file = strings::dup(os::args[2]);
 	let files: []str = [];
 	let iter = match(getdiriter()) {
 		case let i: *fs::iterator =>
@@ -19,8 +26,7 @@ export fn main() void = {
 		     fmt::fatal("Error in opening current dir: {}", fs::strerror(err));
 	};
 	defer fs::finish(iter); // gestione memoria
-	fmt::println("Directory corrente: {}", strings::dup(os::getcwd()))!;
-	getfiles(iter, &files); // ottiene i files
+	getfiles(iter, &files, tag); // ottiene i files
 	printslice(files);
 	// write files to the ignore-file
 	write_to_ignore_file(ignore_file, files);
@@ -31,12 +37,12 @@ fn getdiriter() (*fs::iterator | fs::error)= {
 	return os::iter(cwd);
 };
 
-fn getfiles(iter: *fs::iterator, files: *[]str) void = {
+fn getfiles(iter: *fs::iterator, files: *[]str, tag: str) void = {
 	for(const d => fs::next(iter)!) {
 		if(d.name == "." || d.name == "..") { continue; };
 		if(fs::isdir(d.ftype)){ continue; };
 		if(!isorg(d.name)){ continue; };
-		if(!isproject(d.name)){
+		if(!isproject(d.name, tag)){
 			append(files, d.name);
 		};
 	};
@@ -51,7 +57,7 @@ fn isorg(filename: str) bool = {
 	return parts[len(parts)-1] == "org";
 };
 
-fn isproject(filename: str) bool = {
+fn isproject(filename: str, tag: str) bool = {
 	let fh = os::open(filename)!;
 	defer io::close(fh)!;
 	let found: bool = false;
@@ -66,7 +72,7 @@ fn isproject(filename: str) bool = {
 				os::exit(1);
 		};
 		if(strings::contains(line, "#+filetags:")
-		   && strings::contains(line, "Progetti")) {
+		   && strings::contains(line, tag)) {
 			found = true;
 			break;
 		};
@@ -92,4 +98,10 @@ fn printslice(lines: []str) void = {
 	for (let line .. lines) {
 		fmt::println(line)!;
 	};
+};
+
+fn print_usage() void = {
+	fmt::println("USAGE: ignore TAG IGNORE_FILE")!;
+	fmt::println("TAG\tTag to be searched in the #+filetags field")!;
+	fmt::println("IGNORE_FILE\tFile to write all the non projects files")!;
 };
