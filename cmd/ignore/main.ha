@@ -10,6 +10,7 @@ use strings;
 // ottiene la lista dei file da ignorare e li inserisce in .orgzlyignore
 // usage: ignore TAG IGNORE-FILE
 export fn main() void = {
+	let ignore_file = ".orgzlyignore.prova";
 	let files: []str = [];
 	let iter = match(getdiriter()) {
 		case let i: *fs::iterator =>
@@ -22,6 +23,7 @@ export fn main() void = {
 	getfiles(iter, &files); // ottiene i files
 	printslice(files);
 	// write files to the ignore-file
+	write_to_ignore_file(ignore_file, files);
 };
 
 fn getdiriter() (*fs::iterator | fs::error)= {
@@ -71,6 +73,19 @@ fn isproject(filename: str) bool = {
 	};
 	return found;
 };
+
+
+
+fn write_to_ignore_file(ignore_file: str, files: []str) void = {
+	let fh = os::open(ignore_file, fs::flag::WRONLY)!;
+	defer io::close(fh)!;
+	let newline = strings::toutf8("\n");
+	for(let file .. files) {
+		io::write(fh, strings::toutf8(file))!;
+		io::write(fh, newline)!;
+	};
+};
+
 
 
 fn printslice(lines: []str) void = {
